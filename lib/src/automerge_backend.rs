@@ -826,14 +826,14 @@ mod tests {
     fn write_and_read_file() {
         let temp_dir = new_temp_dir();
         let backend = AutomergeBackend::init(temp_dir.path()).unwrap();
-        let path = RepoPathBuf::from_internal_string("file");
+        let path = RepoPathBuf::from_internal_string("file").unwrap();
         let mut data = Cursor::new(b"hello".to_vec());
         let id = backend
-            .write_file(path.as_repo_path(), &mut data)
+            .write_file(path.as_ref(), &mut data)
             .block_on()
             .unwrap();
         let output = pollster::block_on(async {
-            let mut reader = backend.read_file(path.as_repo_path(), &id).await.unwrap();
+            let mut reader = backend.read_file(path.as_ref(), &id).await.unwrap();
             let mut buf = Vec::new();
             reader.read_to_end(&mut buf).await.unwrap();
             buf
