@@ -24,6 +24,7 @@ use std::sync::Arc;
 use pollster::FutureExt as _;
 use thiserror::Error;
 
+use crate::automerge_backend::AutomergeBackend;
 use crate::backend::BackendInitError;
 use crate::backend::MergedTreeId;
 use crate::commit::Commit;
@@ -190,6 +191,16 @@ impl Workspace {
     ) -> Result<(Self, Arc<ReadonlyRepo>), WorkspaceInitError> {
         let backend_initializer: &BackendInitializer =
             &|_settings, store_path| Ok(Box::new(SimpleBackend::init(store_path)));
+        let signer = Signer::from_settings(user_settings)?;
+        Self::init_with_backend(user_settings, workspace_root, backend_initializer, signer)
+    }
+
+    pub fn init_automerge(
+        user_settings: &UserSettings,
+        workspace_root: &Path,
+    ) -> Result<(Self, Arc<ReadonlyRepo>), WorkspaceInitError> {
+        let backend_initializer: &BackendInitializer =
+            &|_settings, store_path| Ok(Box::new(AutomergeBackend::init(store_path)?));
         let signer = Signer::from_settings(user_settings)?;
         Self::init_with_backend(user_settings, workspace_root, backend_initializer, signer)
     }

@@ -105,6 +105,7 @@ pub mod tree_merge;
 // TODO: This file is mostly used for testing, whenever we no longer require it
 // in the lib it should be moved to the examples (e.g
 // "examples/simple-backend/").
+pub mod automerge_backend;
 pub mod simple_backend;
 pub mod simple_op_heads_store;
 pub mod simple_op_store;

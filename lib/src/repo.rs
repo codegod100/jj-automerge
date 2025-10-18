@@ -32,6 +32,7 @@ use thiserror::Error;
 use tracing::instrument;
 
 use self::dirty_cell::DirtyCell;
+use crate::automerge_backend::AutomergeBackend;
 use crate::backend::Backend;
 use crate::backend::BackendError;
 use crate::backend::BackendInitError;
@@ -412,6 +413,10 @@ impl Default for StoreFactories {
         factories.add_backend(
             SimpleBackend::name(),
             Box::new(|_settings, store_path| Ok(Box::new(SimpleBackend::load(store_path)))),
+        );
+        factories.add_backend(
+            AutomergeBackend::name(),
+            Box::new(|_settings, store_path| Ok(Box::new(AutomergeBackend::load(store_path)?))),
         );
         #[cfg(feature = "git")]
         factories.add_backend(

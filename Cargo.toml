@@ -20,6 +20,7 @@ keywords = ["VCS", "DVCS", "SCM", "Git", "Mercurial"]
 assert_cmd = "2.0.8"
 assert_matches = "1.5.0"
 async-trait = "0.1.89"
+automerge = "0.7.0"
 blake2 = "0.10.6"
 bstr = "1.11.3"
 clap = { version = "4.5.48", features = [
