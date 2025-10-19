@@ -14,6 +14,7 @@
 
 mod abandon;
 mod absorb;
+mod automerge;
 #[cfg(feature = "bench")]
 mod bench;
 mod bisect;
@@ -121,6 +122,8 @@ enum Command {
     #[cfg(feature = "git")]
     #[command(subcommand)]
     Git(git::GitCommand),
+    #[command(subcommand)]
+    Automerge(automerge::AutomergeCommand),
     Help(help::HelpArgs),
     Interdiff(interdiff::InterdiffArgs),
     Log(log::LogArgs),
@@ -189,6 +192,7 @@ pub fn run_command(ui: &mut Ui, command_helper: &CommandHelper) -> Result<(), Co
         Command::Gerrit(sub_args) => gerrit::cmd_gerrit(ui, command_helper, sub_args),
         #[cfg(feature = "git")]
         Command::Git(args) => git::cmd_git(ui, command_helper, args),
+        Command::Automerge(args) => automerge::cmd_automerge(ui, command_helper, args),
         Command::Help(args) => help::cmd_help(ui, command_helper, args),
         Command::Interdiff(args) => interdiff::cmd_interdiff(ui, command_helper, args),
         Command::Log(args) => log::cmd_log(ui, command_helper, args),

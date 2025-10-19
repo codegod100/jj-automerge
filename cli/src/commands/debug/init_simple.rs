@@ -24,10 +24,10 @@ use crate::command_error::cli_error;
 use crate::command_error::user_error_with_message;
 use crate::ui::Ui;
 
-/// Create a new repo in the given directory using the proof-of-concept simple
-/// backend
+/// Create a new repo in the given directory using one of the in-tree toy
+/// backends (simple or automerge).
 ///
-/// The simple backend does not support cloning, fetching, or pushing.
+/// These backends do not support cloning, fetching, or pushing.
 ///
 /// This command is otherwise analogous to `jj git init`. If the given directory
 /// does not exist, it will be created. If no directory is given, the current
@@ -37,6 +37,15 @@ pub(crate) struct DebugInitSimpleArgs {
     /// The destination directory
     #[arg(default_value = ".", value_hint = clap::ValueHint::DirPath)]
     destination: String,
+    /// Which experimental backend to use
+    #[arg(long, value_enum, default_value_t = DebugInitBackend::Simple)]
+    backend: DebugInitBackend,
+}
+
+#[derive(clap::ValueEnum, Clone, Copy, Debug, Eq, PartialEq)]
+enum DebugInitBackend {
+    Simple,
+    Automerge,
 }
 
 #[instrument(skip_all)]
@@ -57,7 +66,15 @@ pub(crate) fn cmd_debug_init_simple(
         .and_then(|_| dunce::canonicalize(wc_path))
         .map_err(|e| user_error_with_message("Failed to create workspace", e))?;
 
-    Workspace::init_simple(&command.settings_for_new_workspace(&wc_path)?, &wc_path)?;
+    let settings = command.settings_for_new_workspace(&wc_path)?;
+    match args.backend {
+        DebugInitBackend::Simple => {
+            Workspace::init_simple(&settings, &wc_path)?;
+        }
+        DebugInitBackend::Automerge => {
+            Workspace::init_automerge(&settings, &wc_path)?;
+        }
+    }
 
     let relative_wc_path = file_util::relative_path(cwd, &wc_path);
     writeln!(

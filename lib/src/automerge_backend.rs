@@ -78,6 +78,25 @@ impl AutomergeBackend {
         "Automerge"
     }
 
+    /// Export the full Automerge document for replication.
+    pub fn export_document(&self) -> BackendResult<Vec<u8>> {
+        let state = self.state.lock().unwrap();
+        Ok(state.doc.save())
+    }
+
+    /// Merge the provided Automerge document into the current backend state.
+    pub fn import_document(&self, bytes: &[u8]) -> BackendResult<()> {
+        let mut incoming =
+            Automerge::load(bytes).map_err(|err| BackendError::Other(Box::new(err)))?;
+        let mut state = self.state.lock().unwrap();
+        state
+            .doc
+            .merge(&mut incoming)
+            .map_err(|err| BackendError::Other(Box::new(err)))?;
+        self.persist_locked_doc(&state)?;
+        Ok(())
+    }
+
     pub fn init(store_path: &Path) -> Result<Self, BackendInitError> {
         fs::create_dir_all(store_path).map_err(|err| BackendInitError(err.into()))?;
         let mut doc = Automerge::new();

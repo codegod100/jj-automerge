@@ -15,6 +15,7 @@ readme = { workspace = true }
 include = [
     "/LICENSE",
     "/benches/",
+    "/examples/",
     "/src/",
     "/tests/",
     "!*.pending-snap",
