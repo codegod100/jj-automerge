@@ -53,7 +53,14 @@ const FILES_KEY: &str = "files";
 const TREES_KEY: &str = "trees";
 const COMMITS_KEY: &str = "commits";
 const SYMLINKS_KEY: &str = "symlinks";
-const ACTOR_ID_BYTES: &[u8] = b"jj-automerge-backend";
+const HEADS_KEY: &str = "heads";
+
+fn actor_id_for_path(path: &Path) -> ActorId {
+    let mut hasher = Blake2b512::new();
+    hasher.update(path.as_os_str().to_string_lossy().as_bytes());
+    let hash = hasher.finalize();
+    ActorId::from(&hash[..16])
+}
 
 #[derive(Debug)]
 pub struct AutomergeBackend {
@@ -71,6 +78,7 @@ struct AutomergeState {
     trees: ObjId,
     commits: ObjId,
     symlinks: ObjId,
+    heads: ObjId,
 }
 
 impl AutomergeBackend {
@@ -97,10 +105,35 @@ impl AutomergeBackend {
         Ok(())
     }
 
+    pub fn heads(&self) -> BackendResult<Vec<CommitId>> {
+        let state = self.state.lock().unwrap();
+        state
+            .head_ids()
+            .map_err(|err| BackendError::Other(Box::new(err)))
+    }
+
+    pub fn set_heads(&self, heads: &[CommitId]) -> BackendResult<()> {
+        let mut state = self.state.lock().unwrap();
+        state
+            .clear_heads()
+            .map_err(|err| BackendError::Other(Box::new(err)))?;
+        let heads_obj = state.heads.clone();
+        for head in heads {
+            state
+                .put_bool(&heads_obj, &head.hex(), true)
+                .map_err(|err| BackendError::WriteObject {
+                    object_type: "heads",
+                    source: err.into(),
+                })?;
+        }
+        self.persist_locked_doc(&state)?;
+        Ok(())
+    }
+
     pub fn init(store_path: &Path) -> Result<Self, BackendInitError> {
         fs::create_dir_all(store_path).map_err(|err| BackendInitError(err.into()))?;
         let mut doc = Automerge::new();
-        doc.set_actor(ActorId::from(ACTOR_ID_BYTES));
+        doc.set_actor(actor_id_for_path(store_path));
         let state = AutomergeState::initialize(doc).map_err(|err| BackendInitError(err.into()))?;
         let backend = Self::from_state(store_path, state);
         backend
@@ -125,7 +158,7 @@ impl AutomergeBackend {
         } else {
             Automerge::new()
         };
-        doc.set_actor(ActorId::from(ACTOR_ID_BYTES));
+        doc.set_actor(actor_id_for_path(store_path));
         let state = AutomergeState::initialize(doc).map_err(|err| BackendLoadError(err.into()))?;
         let backend = Self::from_state(store_path, state);
         backend
@@ -485,6 +518,22 @@ impl Backend for AutomergeBackend {
                     source: err.into(),
                 }
             })?;
+            let heads_obj = state.heads.clone();
+            state
+                .put_bool(&heads_obj, &key, true)
+                .map_err(|err| BackendError::WriteObject {
+                    object_type: "commit",
+                    source: err.into(),
+                })?;
+            for parent in &commit.parents {
+                let parent_key = parent.hex();
+                if let Err(err) = state.delete(&heads_obj, &parent_key) {
+                    return Err(BackendError::WriteObject {
+                        object_type: "commit",
+                        source: err.into(),
+                    });
+                }
+            }
             self.persist_locked_doc(&state)?;
         }
         Ok((id, commit))
@@ -510,12 +559,14 @@ impl AutomergeState {
         let trees = Self::ensure_map(&mut doc, TREES_KEY)?;
         let commits = Self::ensure_map(&mut doc, COMMITS_KEY)?;
         let symlinks = Self::ensure_map(&mut doc, SYMLINKS_KEY)?;
+        let heads = Self::ensure_map(&mut doc, HEADS_KEY)?;
         Ok(Self {
             doc,
             files,
             trees,
             commits,
             symlinks,
+            heads,
         })
     }
 
@@ -616,8 +667,50 @@ impl AutomergeState {
         Ok(())
     }
 
+    fn put_bool(
+        &mut self,
+        obj: &ObjId,
+        key: &str,
+        value: bool,
+    ) -> Result<(), automerge::AutomergeError> {
+        let mut tx = self.doc.transaction();
+        tx.put(obj, key, value)?;
+        let _ = tx.commit();
+        Ok(())
+    }
+
+    fn delete(&mut self, obj: &ObjId, key: &str) -> Result<(), automerge::AutomergeError> {
+        let mut tx = self.doc.transaction();
+        let _ = tx.delete(obj, key);
+        let _ = tx.commit();
+        Ok(())
+    }
+
     fn has_entry(&self, obj: &ObjId, key: &str) -> Result<bool, automerge::AutomergeError> {
         Ok(self.doc.get(obj.clone(), key)?.is_some())
+    }
+
+    fn clear_heads(&mut self) -> Result<(), automerge::AutomergeError> {
+        let keys: Vec<String> = self
+            .doc
+            .map_range(&self.heads, ..)
+            .map(|entry| entry.key.to_string())
+            .collect();
+        let heads_obj = self.heads.clone();
+        for key in keys {
+            self.delete(&heads_obj, &key)?;
+        }
+        Ok(())
+    }
+
+    fn head_ids(&self) -> Result<Vec<CommitId>, automerge::AutomergeError> {
+        let mut heads = Vec::new();
+        for entry in self.doc.map_range(&self.heads, ..) {
+            if let Some(commit_id) = CommitId::try_from_hex(entry.key.as_bytes()) {
+                heads.push(commit_id);
+            }
+        }
+        Ok(heads)
     }
 }
 
