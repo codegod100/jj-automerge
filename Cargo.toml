@@ -46,7 +46,7 @@ crossterm = { version = "0.29", default-features = false, features = ["windows"]
 datatest-stable = "0.3.3"
 digest = "0.11.1"
 dunce = "1.0.5"
-erased-serde = "0.4.9"
+erased-serde = "0.4.10"
 etcetera = "0.11.0"
 either = "1.15.0"
 futures = "0.3.32"
@@ -66,7 +66,7 @@ insta = { version = "1.46.3", features = ["filters"] }
 interim = { version = "0.2.1", features = ["chrono_0_4"] }
 itertools = "0.14.0"
 jsonschema = { version = "0.33.0", default-features = false }
-libc = { version = "0.2.180" }
+libc = { version = "0.2.183" }
 maplit = "1.0.2"
 nix = "0.31.2"
 num_cpus = "1.17.0"
@@ -81,7 +81,7 @@ proptest-derive = "0.8.0"
 proptest-state-machine = "0.7.0"
 prost = "0.14.3"
 prost-build = "0.14.3"
-quote = "1.0.44"
+quote = "1.0.45"
 rand = "0.10.0"
 rand_chacha = "0.10.0"
 rayon = "1.10.0"
@@ -110,7 +110,7 @@ test-case = "3.3.1"
 textwrap = "0.16.2"
 thiserror = "2.0.18"
 timeago = { version = "0.6.0", default-features = false }
-tokio = { version = "1.49.0", features = ["io-util"] }
+tokio = { version = "1.50.0", features = ["io-util"] }
 toml = "0.9.8"
 toml_edit = { version = "0.23.9", features = ["serde"] }
 tracing = "0.1.44"
