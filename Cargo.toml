@@ -29,7 +29,7 @@ clap = { version = "4.6.1", features = [
     "wrap_help",
     "string",
 ] }
-clap_complete = { version = "4.6.2", features = ["unstable-dynamic"] }
+clap_complete = { version = "4.6.3", features = ["unstable-dynamic"] }
 clap_complete_nushell = "4.6.0"
 # Update clap-markdown manually since test_generate_md_cli_help snapshot
 # will need regenerating.
@@ -50,7 +50,7 @@ erased-serde = "0.4.10"
 etcetera = "0.11.0"
 either = "1.15.0"
 futures = "0.3.32"
-gix = { version = "0.81.0", default-features = false, features = [
+gix = { version = "0.82.0", default-features = false, features = [
     "attributes",
     "blob-diff",
     "index",
@@ -66,7 +66,7 @@ insta = { version = "1.47.2", features = ["filters"] }
 interim = { version = "0.2.1", features = ["chrono_0_4"] }
 itertools = "0.14.0"
 jsonschema = { version = "0.33.0", default-features = false }
-libc = { version = "0.2.185" }
+libc = { version = "0.2.186" }
 maplit = "1.0.2"
 nix = "0.31.2"
 num_cpus = "1.17.0"
@@ -124,7 +124,7 @@ tracing-subscriber = { version = "0.3.23", default-features = false, features = 
 unicode-width = "0.2.2"
 version_check = "0.9.5"
 watchman_client = { version = "0.9.0" }
-whoami = "2.1.1"
+whoami = "2.1.2"
 winreg = "0.56"
 
 # put all inter-workspace libraries, i.e. those that use 'path = ...' here in
