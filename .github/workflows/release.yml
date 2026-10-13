@@ -49,7 +49,7 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y --no-install-recommends xz-utils liblz4-tool musl-tools
     - name: Install Rust
-      uses: dtolnay/rust-toolchain@7e38f4b43b4db5c8dd498af069a4f6196df1d067
+      uses: dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f
       with:
         toolchain: stable
         target: ${{ matrix.target }}
@@ -102,7 +102,7 @@ jobs:
         with:
           python-version: 3.11
       - name: Install uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7
+        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884
         with:
           version: "0.5.1"
       - name: Compile docs and zip them up
@@ -139,7 +139,7 @@ jobs:
         with:
           python-version: 3.11
       - name: Install uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7
+        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884
         with:
           version: "0.5.1"
       - name: Install dependencies, compile and deploy docs to the "latest release" section of the website
